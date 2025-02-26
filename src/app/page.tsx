@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 const initialItems = [
   {
@@ -52,29 +52,31 @@ const initialItems = [
 
 export default function HomePage() {
   const [mainList, setMainList] = useState<typeof initialItems>(initialItems);
-  const [fruitList, setFruitList] = useState<typeof initialItems>([]);
-  const [vegetableList, setVegetableList] = useState<typeof initialItems>([]);
+  const [tempItems, setTempItems] = useState<typeof initialItems>([]);
 
-  const moveToColumn = (item: (typeof initialItems)[0]) => {
-    if (item.type === "Fruit") {
-      setFruitList((prev) => [...prev, item]);
-    } else {
-      setVegetableList((prev) => [...prev, item]);
-    }
+  const fruitList = useMemo(
+    () => tempItems.filter((item) => item.type === "Fruit"),
+    [tempItems]
+  );
+  const vegetableList = useMemo(
+    () => tempItems.filter((item) => item.type === "Vegetable"),
+    [tempItems]
+  );
+
+  const moveToColumn = useCallback((item: (typeof initialItems)[0]) => {
     setMainList((prev) => prev.filter((i) => i.name !== item.name));
+    setTempItems((prev) => [...prev, item]);
 
     setTimeout(() => {
+      setTempItems((prev) => prev.filter((i) => i.name !== item.name));
       setMainList((prev) => [...prev, item]);
-      setFruitList((prev) => prev.filter((i) => i.name !== item.name));
-      setVegetableList((prev) => prev.filter((i) => i.name !== item.name));
     }, 5000);
-  };
+  }, []);
 
-  const moveBackToMainList = (item: (typeof initialItems)[0]) => {
+  const moveBackToMainList = useCallback((item: (typeof initialItems)[0]) => {
+    setTempItems((prev) => prev.filter((i) => i.name !== item.name));
     setMainList((prev) => [...prev, item]);
-    setFruitList((prev) => prev.filter((i) => i.name !== item.name));
-    setVegetableList((prev) => prev.filter((i) => i.name !== item.name));
-  };
+  }, []);
 
   return (
     <main className="flex flex-col md:flex-row h-screen p-4 gap-4">
